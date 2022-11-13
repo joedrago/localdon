@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Localdon</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    />
+    <style>
+      html, body {
+        margin: 0px;
+        background: #000;
+        color: #fff;
+        font-family: monospace;
+
+        font-size: 1.1em;
+      }
+
+      a {
+        color: #8c8dff;
+        text-decoration: none;
+      }
+
+      .header {
+        width: 100%;
+        text-align: center;
+        font-style: italic;
+        color: #606984;
+        margin-top: 10px;
+      }
+
+      .postcon {
+        background-color: #313543;
+        margin: 10px;
+        border-radius: 10px;
+      }
+
+      .postavatar {
+        border-radius: 10px;
+        margin: 5px;
+        width: 46px;
+        height: 46px;
+      }
+
+      .postleft {
+      }
+
+      .poststack {
+        display: inline-block;
+        margin: 5px;
+      }
+
+      .postdisplay {
+        color: #fff;
+      }
+      .postacct {
+        color: #606984;
+      }
+
+      .poststatus {
+        font-size: 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .postright {
+        display: block;
+        font-size: 15px;
+        line-height: 22px;
+        height: 40px;
+        order: 2;
+        flex: 0 0 auto;
+        color: #606984;
+        margin: 5px;
+      }
+
+      .attachimage {
+        margin: 20px;
+      }
+
+      .postcontent {
+        padding: 10px;
+      }
+
+      .postfooter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 30px;
+        margin-right: 30px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+      }
+
+      .postfooter a {
+        color: #606984;
+      }
+
+      .postscontainer {
+        margin: auto;
+        max-width: 800px;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="data.js"></script>
+    <div id="root"></div>
+  </body>
+</html>
