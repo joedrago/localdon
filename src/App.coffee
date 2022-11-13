@@ -2,6 +2,8 @@ import moment from 'moment'
 
 import React, { Component } from 'react'
 
+import { ThemeProvider, createTheme } from '@mui/material/styles'
+
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import Divider from '@mui/material/Divider'
@@ -22,7 +24,28 @@ import MenuIcon from '@mui/icons-material/Menu'
 import PersonIcon from '@mui/icons-material/Person'
 import StorageIcon from '@mui/icons-material/Storage'
 
+import Stack from '@mui/material/Stack'
+import Pagination from '@mui/material/Pagination'
+
 import { el } from './reactutils'
+
+qs = (name) ->
+  url = window.location.href
+  name = name.replace(/[\[\]]/g, '\\$&')
+  regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)')
+  results = regex.exec(url);
+  if not results or not results[2]
+    return null
+  return decodeURIComponent(results[2].replace(/\+/g, ' '))
+
+POSTS_PER_PAGE = qs("c")
+if not POSTS_PER_PAGE?
+  POSTS_PER_PAGE = 20
+
+darkTheme = createTheme {
+  palette:
+    mode: 'dark'
+}
 
 class App extends Component
   constructor: (props) ->
@@ -32,9 +55,8 @@ class App extends Component
       width: window.innerWidth
       height: window.innerHeight
       hash: location.hash
+      page: 1
       drawerOpen: false
-
-    console.log @state
 
   componentDidMount: ->
     window.addEventListener("resize", @onResize.bind(this))
@@ -50,6 +72,7 @@ class App extends Component
   onHash: ->
     @setState {
       hash: location.hash
+      page: 1
     }
 
   createDrawerButton: (keyBase, iconClass, text, onClick) ->
@@ -78,6 +101,12 @@ class App extends Component
       }, buttonPieces
     ]
 
+  onPage: (event, page) ->
+    @setState {
+      page: page
+    }
+    window.scrollTo(0, 0)
+
   render: ->
     header = el 'div', {
       key: 'header'
@@ -93,6 +122,7 @@ class App extends Component
       if filter.length > 0
         filters = filter.split(/\|/)
 
+    filtered = []
     for post in window.localdonData.posts
       if filters?
         found = false
@@ -105,7 +135,22 @@ class App extends Component
             break
         if not found
           continue
+      filtered.push post
 
+    totalPages = Math.ceil(filtered.length / POSTS_PER_PAGE)
+    postsToSkip = (@state.page - 1) * POSTS_PER_PAGE
+    console.log "@state.page #{@state.page}, postsToSkip: #{postsToSkip}"
+
+    page = []
+
+    firstIndex = postsToSkip
+    lastIndex = postsToSkip + POSTS_PER_PAGE - 1
+    if lastIndex >= filtered.length
+      lastIndex = filtered.length - 1
+    for postIndex in [firstIndex..lastIndex]
+      page.push filtered[postIndex]
+
+    for post in page
       matches = post.url.match(/\/([^\/]+\/[^\/]+)$/)
       postSuffix = matches[1]
 
@@ -200,6 +245,35 @@ class App extends Component
         ]
       ]
 
+    if totalPages > 1
+      paginationTop = [
+        el Stack, {
+          key: "pagstacktop"
+          alignItems: "center"
+        }, el Pagination, {
+          key: "pagtop"
+          color: "primary"
+          page: @state.page
+          count: totalPages
+          onChange: @onPage.bind(this)
+        }
+      ]
+      paginationBot = [
+        el Stack, {
+          key: "pagstackbot"
+          alignItems: "center"
+        }, el Pagination, {
+          key: "pagbot"
+          color: "primary"
+          page: @state.page
+          count: totalPages
+          onChange: @onPage.bind(this)
+        }
+      ]
+    else
+      paginationTop = []
+      paginationBot = []
+
     postscontainer = el 'div', {
       key: 'postscontainer'
       className: 'postscontainer'
@@ -258,11 +332,15 @@ class App extends Component
       el MenuIcon, { key: 'menuButtonIcon' }
     ]
 
-    return el 'div', {
+    return el ThemeProvider, {
+      theme: darkTheme
+    }, el 'div', {
         key: 'appcontainer'
-      }, [
-        header
-        postscontainer
+    }, [
+      header
+      ...paginationTop
+      postscontainer
+      ...paginationBot
       drawer
       menuButton
     ]
