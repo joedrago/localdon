@@ -164,11 +164,12 @@ class App extends Component
             attachments.push el 'a', {
               key: "attachlink#{attachment.id}"
               href: attachment.url
-              className: "attachimage"
+              className: "attachimagelink"
             }, [
               el 'img', {
                 key: "attachpreview#{attachment.id}"
                 src: previewUrl
+                className: "attachimage"
               }
             ]
 
