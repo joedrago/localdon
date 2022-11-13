@@ -157,21 +157,81 @@ class App extends Component
       attachments = []
       if post.media_attachments?
         for attachment in post.media_attachments
-          if attachment.type == 'image'
-            previewUrl = attachment.preview_url
-            if not previewUrl?
-              previewUrl = attachment.url
-            attachments.push el 'a', {
-              key: "attachlink#{attachment.id}"
-              href: attachment.url
-              className: "attachimagelink"
-            }, [
-              el 'img', {
-                key: "attachpreview#{attachment.id}"
-                src: previewUrl
-                className: "attachimage"
-              }
-            ]
+          switch attachment.type
+            when 'video'
+              if attachment.html
+                attachments.push el 'div', {
+                  key: "p#{post.id}embed"
+                  className: "postembed"
+                  dangerouslySetInnerHTML: { __html: attachment.html }
+                }
+              else
+                attachments.push el Stack, {
+                  key: "videoembedstack"
+                  alignItems: "center"
+                }, el 'video', {
+                  key: "attachembed#{attachment.id}"
+                  className: "attachvideo"
+                  controls: true
+                }, [
+                  el 'source', {
+                    src: attachment.url
+                    type: "video/mp4"
+                  }
+                ]
+            when 'image'
+              if attachment.html
+                attachments.push el Stack, {
+                  key: "videoembedstack"
+                  alignItems: "center"
+                }, el 'div', {
+                  key: "p#{post.id}embed"
+                  className: "postembed"
+                  dangerouslySetInnerHTML: { __html: attachment.html }
+                }
+              else
+                previewUrl = attachment.preview_url
+                if not previewUrl?
+                  previewUrl = attachment.url
+                attachments.push el Stack, {
+                  key: "videoembedstack"
+                  alignItems: "center"
+                }, el 'a', {
+                  key: "attachlink#{attachment.id}"
+                  href: attachment.url
+                  className: "attachimagelink"
+                }, [
+                  el 'img', {
+                    key: "attachpreview#{attachment.id}"
+                    src: previewUrl
+                    className: "attachimage"
+                  }
+                ]
+
+      if post.card?
+        if post.card.html? and (post.card.html.length > 0)
+          preview = el 'div', {
+            className: "cardembed"
+            dangerouslySetInnerHTML: { __html: post.card.html }
+          }
+        else if post.card.image?
+          preview = el 'img', {
+            className: "cardimage"
+            src: post.card.image
+          }
+
+        attachments.push el 'div', {
+          className: "card"
+        }, [
+          el 'a', {
+            className: "cardtitle"
+            href: post.card.url
+          }, post.card.title
+          el 'div', {
+            className: "carddesc"
+          }, post.card.description
+          preview
+        ]
 
       postdivs.push el 'div', {
         key: "p#{post.id}con"
@@ -181,12 +241,6 @@ class App extends Component
           key: "p#{post.id}status"
           className: "poststatus"
         }, [
-          el 'a', {
-            key: "p#{post.id}right"
-            className: "postright"
-            href: post.url
-          }, moment(post.created_at).fromNow()
-
           el 'div', {
             key: "p#{post.id}left"
             className: "postleft"
@@ -221,6 +275,12 @@ class App extends Component
           dangerouslySetInnerHTML: { __html: post.content }
         }
         ...attachments
+
+        el 'a', {
+          key: "p#{post.id}right"
+          className: "postright"
+          href: post.url
+        }, moment(post.created_at).fromNow()
 
         el 'div', {
           key: "p#{post.id}footer"
