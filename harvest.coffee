@@ -4,7 +4,14 @@ https = require 'https'
 moment = require 'moment'
 URL = require 'url'
 
-POST_COUNT = 200
+console.log "CWD: #{__dirname}"
+process.chdir(__dirname)
+
+POST_COUNT = 60
+
+idCache = {}
+if fs.existsSync("idcache.json")
+  idCache = JSON.parse(fs.readFileSync("idcache.json", "utf8"))
 
 sleep = (ms) ->
   return new Promise (resolve) ->
@@ -13,6 +20,10 @@ sleep = (ms) ->
 syntax = ->
   console.log "Syntax: harvest [-l] [CONFIG]"
   process.exit(0)
+
+# download = (url) ->
+#   return new Promise (resolve, reject) ->
+#     resolve(JSON.parse(fs.readFileSync("hax.json", "utf8")))
 
 download = (url) ->
   return new Promise (resolve, reject) ->
@@ -39,6 +50,23 @@ download = (url) ->
           console.log "ERROR: Failed to talk to parse JSON: #{rawJSON}"
           return
         resolve(data)
+
+lookupID = (username, server) ->
+  return new Promise (resolve, reject) ->
+    follow = "#{username}@#{server}"
+    if idCache[follow]?
+      console.log "ID[#{follow}]: #{idCache[follow]} (Cached)"
+      resolve(idCache[follow])
+      return
+
+    url = "https://#{server}/api/v1/accounts/lookup?acct=#{username}"
+    data = await download(url)
+    if data?
+      idCache[follow] = data.id
+      console.log "ID[#{follow}]: #{idCache[follow]} (Lookup)"
+      resolve(idCache[follow])
+    else
+      resolve(null)
 
 harvest = (config) ->
   now = moment().format()
@@ -82,6 +110,56 @@ harvest = (config) ->
     all = all.concat(data)
 
     console.log "Harvested #{data.length} entries from #{server}"
+
+  for follow in config.follows
+    console.log "Harvesting follow: #{follow}"
+    pieces = follow.split(/@/)
+    if pieces.length != 2
+      console.log "Bad follow format: #{follow}"
+      continue
+
+    username = pieces[0]
+    server = pieces[1]
+
+    id = await lookupID(username, server)
+    if not id?
+      console.log "Can't find ID from user: #{follow}"
+      continue
+
+    data = []
+    maxID = null
+    postCount = 0
+    loop
+      console.log "Harvesting user @#{username}@#{server} (ID:#{id})... (#{postCount} posts so far)"
+      url = "https://#{server}/api/v1/accounts/#{id}/statuses?limit=#{POST_COUNT}"
+      if maxID?
+        url += "&max_id=#{maxID}"
+      page = await download(url)
+      if not page?
+        console.error "Failed to get data from server: #{server}"
+        continue
+
+      page.sort (a, b) ->
+        d = moment(b.created_at).diff(a.created_at)
+        if d != 0
+          return d
+        return a.url.localeCompare(b.url)
+
+      data = data.concat(page)
+
+      postCount += page.length
+      if page.length > 1
+        maxID = page[page.length - 1].id
+      else
+        break
+
+      if postCount >= POST_COUNT
+        console.log "Harvested #{postCount} posts from @#{username}@#{server}."
+        break
+
+    for d in data
+      d.from = server
+    all = all.concat(data)
 
   # filter dupes
   seen = {}
@@ -135,5 +213,7 @@ main = ->
       await sleep(5 * 60 * 1000)
     else
       break
+
+  fs.writeFileSync("idcache.json", JSON.stringify(idCache))
 
 main()

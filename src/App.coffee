@@ -151,8 +151,37 @@ class App extends Component
       page.push filtered[postIndex]
 
     for post in page
+      origPost = post
+      if post.reblog?
+        post = post.reblog
+
       matches = post.url.match(/\/([^\/]+\/[^\/]+)$/)
       postSuffix = matches[1]
+
+      origPostFrom = ""
+      if origPost.from?
+        origPostFrom = "@#{origPost.from}"
+
+      postFrom = ""
+      if post.from?
+        postFrom = "@#{post.from}"
+
+      if origPost.reblog?
+        postReblogClass = "postreblog"
+        postReblogContent = [
+          el 'a', {
+                  key: "reblog#{origPost.id}"
+                  href: origPost.account.url
+                  className: "postrebloglink"
+                }, "Reblog: #{origPost.account.acct}#{origPostFrom}"
+        ]
+      else
+        postReblogClass = ""
+        postReblogContent = []
+
+      postDisplayName = post.account.display_name
+      if postDisplayName.length < 1
+        postDisplayName = post.account.username
 
       attachments = []
       if post.media_attachments?
@@ -258,13 +287,13 @@ class App extends Component
               el 'div', {
                 key: "p#{post.id}display"
                 className: "postdisplay"
-              }, post.account.display_name
+              }, postDisplayName
 
               el 'a', {
                 key: "p#{post.id}acct"
                 className: "postacct"
                 href: post.account.url
-              }, "#{post.account.acct}@#{post.from}"
+              }, "#{post.account.acct}#{postFrom}"
             ]
           ]
         ]
@@ -283,6 +312,11 @@ class App extends Component
         }, moment(post.created_at).fromNow()
 
         el 'div', {
+          key: "p#{post.id}reblog"
+          className: postReblogClass
+        }, postReblogContent
+
+        el 'div', {
           key: "p#{post.id}footer"
           className: "postfooter"
         }, [
@@ -295,7 +329,7 @@ class App extends Component
           el 'a', {
             key: "onlyperson"
             title: 'Show all from this Person'
-            href: "##{post.account.username}"
+            href: "##{origPost.account.username}"
           }, el PersonIcon
 
           el 'a', {
