@@ -108,10 +108,8 @@ class App extends Component
     window.scrollTo(0, 0)
 
   render: ->
-    header = el 'div', {
-      key: 'header'
-      className: 'header'
-    }, "Last Updated: #{moment(localdonData.updated).fromNow()}"
+    if not window.localdonData?
+      return []
 
     postdivs = []
 
@@ -185,21 +183,21 @@ class App extends Component
 
       attachments = []
       if post.media_attachments?
-        for attachment in post.media_attachments
+        for attachment, attachmentIndex in post.media_attachments
           switch attachment.type
             when 'video'
               if attachment.html
                 attachments.push el 'div', {
-                  key: "p#{post.id}embed"
+                  key: "p#{post.id}embed#{attachmentIndex}"
                   className: "postembed"
                   dangerouslySetInnerHTML: { __html: attachment.html }
                 }
               else
                 attachments.push el Stack, {
-                  key: "videoembedstack"
+                  key: "videoembedstack#{post.id}#{attachmentIndex}"
                   alignItems: "center"
                 }, el 'video', {
-                  key: "attachembed#{attachment.id}"
+                  key: "attachembed#{attachment.id}#{attachmentIndex}"
                   className: "attachvideo"
                   controls: true
                 }, [
@@ -211,7 +209,7 @@ class App extends Component
             when 'image'
               if attachment.html
                 attachments.push el Stack, {
-                  key: "videoembedstack"
+                  key: "imageembedstack#{post.id}#{attachmentIndex}"
                   alignItems: "center"
                 }, el 'div', {
                   key: "p#{post.id}embed"
@@ -223,15 +221,15 @@ class App extends Component
                 if not previewUrl?
                   previewUrl = attachment.url
                 attachments.push el Stack, {
-                  key: "videoembedstack"
+                  key: "previewembedstack#{post.id}#{attachmentIndex}"
                   alignItems: "center"
                 }, el 'a', {
-                  key: "attachlink#{attachment.id}"
+                  key: "attachlink#{attachment.id}#{attachmentIndex}"
                   href: attachment.url
                   className: "attachimagelink"
                 }, [
                   el 'img', {
-                    key: "attachpreview#{attachment.id}"
+                    key: "attachpreview#{attachment.id}#{attachmentIndex}"
                     src: previewUrl
                     className: "attachimage"
                   }
@@ -432,7 +430,6 @@ class App extends Component
     }, el 'div', {
         key: 'appcontainer'
     }, [
-      header
       ...paginationTop
       postscontainer
       ...paginationBot

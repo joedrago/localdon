@@ -185,8 +185,12 @@ harvest = (config) ->
     servers: config.servers
     updated: now
 
-  dataJS = "window.localdonData = " + JSON.stringify(localdonData) + ";";
-  fs.writeFileSync("dist/data.js", dataJS)
+  name = config.name
+  if not name?
+    name = "data"
+  outputFilename = "dist/#{name}.json"
+  fs.writeFileSync(outputFilename, JSON.stringify(localdonData))
+  console.log "Wrote: #{outputFilename}"
 
 main = ->
   argv = process.argv.slice(2)
