@@ -392,6 +392,17 @@ class App extends Component
             drawerOpen: false
           }
 
+    drawerItems.push el Divider, { key: "followDivider" }
+
+    for follow in window.localdonData.follows
+      do (follow) =>
+        splitFollow = follow.split(/@/)[0]
+        drawerItems.push @createDrawerButton "follow_#{follow}", StorageIcon, "#{splitFollow}", =>
+          location.hash = "##{splitFollow}"
+          @setState {
+            drawerOpen: false
+          }
+
     drawer = el Drawer, {
       key: 'drawer'
       anchor: 'right'

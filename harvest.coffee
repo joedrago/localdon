@@ -183,6 +183,7 @@ harvest = (config) ->
   localdonData =
     posts: all
     servers: config.servers
+    follows: config.follows
     updated: now
 
   name = config.name
