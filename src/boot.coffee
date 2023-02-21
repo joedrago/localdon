@@ -18,10 +18,12 @@ qs = (name) ->
 
 window.localdonData = null
 
+lastUpdatedSuffix = ""
+
 updateLastUpdated = ->
   # console.log "update setInterval"
   if window.localdonData?
-    document.getElementById("header").innerHTML = "Last Updated: #{moment(window.localdonData.updated).fromNow()}"
+    document.getElementById("header").innerHTML = "Last Updated#{lastUpdatedSuffix}: #{moment(window.localdonData.updated).fromNow()}"
 
 window.onload = ->
   ua = navigator.userAgent
@@ -36,7 +38,9 @@ window.onload = ->
     bodyElement.style.bottom = 0
 
   source = qs("src")
-  if not source?
+  if source?
+    lastUpdatedSuffix = "[#{source}]"
+  else
     source = "data"
 
   sourceJSON = "#{source}.json"
