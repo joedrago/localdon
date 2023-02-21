@@ -228,11 +228,27 @@ class App extends Component
                   href: attachment.url
                   className: "attachimagelink"
                 }, [
-                  el 'img', {
-                    key: "attachpreview#{attachment.id}#{attachmentIndex}"
-                    src: previewUrl
-                    className: "attachimage"
-                  }
+                  el 'div', {
+                    className: "spoiler"
+                  }, [
+                    el 'input', {
+                      key: "attachcheckbox#{attachment.id}#{attachmentIndex}"
+                      id: "attachcheckbox#{attachment.id}#{attachmentIndex}"
+                      type: 'checkbox'
+                      defaultChecked: not post.sensitive
+                    }
+                    el 'img', {
+                      key: "attachpreview#{attachment.id}#{attachmentIndex}"
+                      id: "attachpreview#{attachment.id}#{attachmentIndex}"
+                      src: previewUrl
+                      className: "attachimage"
+                    }
+                    el 'label', {
+                      key: "attachlabel#{attachment.id}#{attachmentIndex}"
+                      for: "attachcheckbox#{attachment.id}#{attachmentIndex}"
+                      className: "spoiler-button"
+                    }, "Sensitive Content"
+                  ]
                 ]
 
       if post.card?
