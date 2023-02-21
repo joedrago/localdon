@@ -246,6 +246,8 @@ class App extends Component
             className: "cardimage"
             src: post.card.image
           }
+        else
+          preview = []
 
         attachments.push el 'div', {
           className: "card"
